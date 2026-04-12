@@ -1,7 +1,6 @@
 package com.abdev.taskaudit.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,6 +10,10 @@ import java.time.LocalDateTime;
 public class TaskAudit {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
     private String eventId;
 
     private Long taskId;

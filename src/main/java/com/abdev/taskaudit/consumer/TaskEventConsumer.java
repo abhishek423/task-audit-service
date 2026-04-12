@@ -5,6 +5,7 @@ import com.abdev.taskaudit.event.TaskEvent;
 import com.abdev.taskaudit.repository.TaskAuditRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +24,25 @@ public class TaskEventConsumer {
     @KafkaListener(topics = "task-events", groupId = "audit-group-v2")
     public void consume(TaskEvent event) {
         log.info("Consumed event: {}", event);
+        try {
+            TaskAudit audit = new TaskAudit();
+            audit.setEventId(event.getEventId());
+            audit.setTaskId(event.getTaskId());
+            audit.setEventType(event.getEventType());
+            audit.setTimestamp(event.getTimestamp());
 
-        TaskAudit audit = new TaskAudit();
-        audit.setEventId(event.getEventId());
-        audit.setTaskId(event.getTaskId());
-        audit.setEventType(event.getEventType());
-        audit.setTimestamp(event.getTimestamp());
+            taskAuditRepository.save(audit);
+            log.info("Saved audit for taskId={}", event.getTaskId());
 
-        taskAuditRepository.save(audit);
-        log.info("Saved audit for taskId={}", event.getTaskId());
+        } catch (DataIntegrityViolationException e) {
+
+            // Duplicate handled
+            log.warn("Duplicate event detected, skipping eventId={}", event.getEventId());
+        } catch (Exception e) {
+
+            // failure → rethrow to trigger retry + DLQ
+            log.error("Error processing event: {}", event, e);
+            throw e;
+        }
     }
 }
