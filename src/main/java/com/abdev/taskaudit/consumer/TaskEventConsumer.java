@@ -23,18 +23,14 @@ public class TaskEventConsumer {
     @KafkaListener(topics = "task-events", groupId = "audit-group-v2")
     public void consume(TaskEvent event) {
         log.info("Consumed event: {}", event);
-        try {
-            TaskAudit audit = new TaskAudit();
-            audit.setEventId(event.getEventId());
-            audit.setTaskId(event.getTaskId());
-            audit.setEventType(event.getEventType());
-            audit.setTimestamp(event.getTimestamp());
 
-            taskAuditRepository.save(audit);
-            log.info("Saved audit for taskId={}", event.getTaskId());
+        TaskAudit audit = new TaskAudit();
+        audit.setEventId(event.getEventId());
+        audit.setTaskId(event.getTaskId());
+        audit.setEventType(event.getEventType());
+        audit.setTimestamp(event.getTimestamp());
 
-        } catch (Exception e) {
-            log.error("Error processing event: {}", event, e);
-        }
+        taskAuditRepository.save(audit);
+        log.info("Saved audit for taskId={}", event.getTaskId());
     }
 }
