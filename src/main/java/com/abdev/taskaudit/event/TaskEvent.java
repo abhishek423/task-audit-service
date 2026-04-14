@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
 @Data
 public class TaskEvent {
     private String eventId;
-    private String eventType;
-    private Long taskId;
+    private TaskEventType eventType;
+    private String eventVersion;
     private LocalDateTime timestamp;
+    private Object data;
 }
